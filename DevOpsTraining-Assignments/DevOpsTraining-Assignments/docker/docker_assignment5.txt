@@ -1,0 +1,72 @@
+Your company has recently decided to use Docker to run containers in production. They have built some Docker images to run their own proprietary software and need a place to store and manage these images. You have been asked to build a secure, private Docker registry for use by the company. In order to verify that everything works, you have also been asked to configure a Docker workstation server to push to and pull from the registry.
+
+To complete this lab, ensure that the following requirements are met for the registry:
+
+1. A private Docker registry is running on the Docker registry server using version 2 of the registry image.
+2. The container name for the registry should be registry.
+3. The registry should always automatically restart if it stops or the Docker daemon or server restarts.
+4. The registry should require authentication. Set up an initial account with the username docker and the password d0ck3rrU73z.
+5. The registry should use TLS with a self-signed certificate.
+6. The registry should listen on port 443.
+
+
+Set up the Docker workstation server to meet the following requirements:
+
+1. Docker is logged in to the private registry.
+2. Docker is configured to accept the self-signed cert. Do not turn off certificate verification using the insecure-registries setting.
+3. To confirm that everything is working, push a test image called ip-10-0-1-101:443/test-image:1 to the private registry. You can pull any image from Docker hub and tag it with ip-10-0-1-101:443/test-image:1 as a test.
+4. Delete the test image locally and pull it from the registry.
+
+[NOTE: Write the series of commands to achieve above in this file below the question scenario with documentation]
+
+Good luck!
+
+=================================================================================================================================================================
+
+              STeps
+
+1.create a directory that holds ssl certificats  
+	>> mkdir -p /docker_data/certs/
+
+2. generate a ssl certificate
+
+	>> openssl req \
+  -newkey rsa:4096 -nodes -sha256 -keyout /docker_data/certs/domain.key \
+  -x509 -days 365 -out /docker_data/certs/domain.crt
+
+	
+	specify:
+          Common Name (eg, your name or your server's hostname) []:docker-registry.learnitguide.net
+
+
+3. create a folder that holds images of registry
+	 # mkdir -p /docker_data/images
+
+
+4. start the container by running following command
+
+ # docker run -d -p 5000:5000 \
+-v /docker_data/images:/var/lib/registry \
+-v /docker_data/certs:/certs \
+-e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
+-e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+--restart on-failure \
+--name myregistry \
+docker.io/registry
+
+
+
+5. pull any image from docker hub and rename it
+
+ 	>> docker tag docker.io/nginx localhost:5000/my-nginx
+
+6. push the renmaed images like follow
+
+	>>docker push localhost:5000/my-nginx
+
+7.you can check image got saved in mounted directory
+
+	>># ll /docker_data/images/docker/registry/v2/repositories/
+
+
+
